@@ -756,6 +756,9 @@ class DeepTCR_U(object):
         self.var = var_list
         print('Clustering Done')
 
+    def Structural_Diversity(self):
+        check=1
+
 
 
 
