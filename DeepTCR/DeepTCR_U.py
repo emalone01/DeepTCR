@@ -13,6 +13,7 @@ import seaborn as sns
 import colorsys
 import matplotlib.pyplot as plt
 from scipy.cluster.hierarchy import linkage,fcluster
+from scipy.stats import entropy as scipy_entropy
 
 class DeepTCR_U(object):
 
@@ -757,13 +758,43 @@ class DeepTCR_U(object):
         print('Clustering Done')
 
     def Structural_Diversity(self):
-        check=1
+
+        #Normalize Features
+        features = 1/(1+np.exp(-self.features))
+
+        sample_entropy = []
+        labels = []
+        for file in self.file_list:
+            idx = np.where(self.file_id==file)[0]
+            labels.append(np.unique(self.label_id[idx])[0])
+            features_sel = features[idx,:]
+            freq_sel = self.freq[idx]
+            feature_weight = features_sel*np.expand_dims(np.exp(freq_sel),-1)
+
+            # feature_entropy = scipy_entropy(feature_weight)
+            # feature_entropy_sum = np.sum(feature_entropy)
+            # sample_entropy.append(feature_entropy_sum)
+
+            feature_sum = np.sum(feature_weight,0)
+            feature_entropy = scipy_entropy(feature_sum)
+            sample_entropy.append(feature_entropy)
+
+        df_out = pd.DataFrame()
+        df_out['Samples'] = self.file_list
+        df_out['Entropy'] = sample_entropy
+        df_out['Label'] = labels
+
+        sns.violinplot(data=df_out,x='Label',y='Entropy')
 
 
 
 
 
 
+
+
+
+ 
 
 
 
