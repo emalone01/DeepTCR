@@ -1003,6 +1003,9 @@ class DeepTCR_U(object):
         self.pairwise_distances: pandas dataframe
             dataframe that stores the pairwise distances for all samples
 
+        self.X_2: numpy array
+            two-dimensional representation of samples
+
         """
 
         if Load_Prev_Data is False:
@@ -1044,29 +1047,6 @@ class DeepTCR_U(object):
                     dist = np.sum(dist)
                     pairwise_distances[ii,jj] = dist
 
-            # dist_mat = squareform(pairwise_distances)
-            # linkage_matrix = linkage(dist_mat)
-            # dendrogram(linkage_matrix, color_threshold=1, labels=sample_id, show_leaf_counts=True,orientation='left')
-            # plt.xticks(rotation=90)
-            # plt.show()
-            # import networkx as nx
-
-            # G = nx.Graph()
-            # rows, cols = np.where(pairwise_distances > 0)
-            # w = pairwise_distances[rows, cols]
-            # rows = sample_id[rows]
-            # cols = sample_id[cols]
-            # edges = list(zip(rows.tolist(), cols.tolist(), w.tolist()))
-            # G.add_weighted_edges_from(edges)
-            # thresh = 0.0
-            # edge_list = [(u, v) for (u, v, d) in G.edges(data=True) if d['weight'] > thresh]
-            #
-            # edge_weights = 1 * np.asarray([G[u][v]['weight'] for u, v in edge_list])
-            # pos = nx.spring_layout(G)
-            # # pos = nx.spectral_layout(G)
-            # nx.draw_networkx_nodes(G, pos, node_size=300)
-            # nx.draw_networkx_edges(G, pos, edgelist=edge_list, width=edge_weights)
-            # nx.draw_networkx_labels(G, pos, font_size=24, font_colr='b')
 
             df = pd.DataFrame(pairwise_distances)
             df.index = sample_id
@@ -1100,7 +1080,7 @@ class DeepTCR_U(object):
 
             plt.figure()
             plt.scatter(X_2[:, 0], X_2[:, 1], c=row_colors, s=s)
-            legend = plt.legend(handles=patches)
+            plt.legend(handles=patches)
 
 
 
