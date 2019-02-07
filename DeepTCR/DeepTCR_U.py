@@ -1014,7 +1014,7 @@ class DeepTCR_U(object):
                 hist,edges = np.histogram(feature,weights=self.freq,density=density)
                 bin_edges.append(edges)
 
-            sample_id = np.unique(self.file_id)
+            sample_id = self.file_list
 
             #Get histograms for all samples
             sample_histograms = []
