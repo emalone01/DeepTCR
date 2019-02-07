@@ -967,7 +967,7 @@ class DeepTCR_U(object):
         self.var_beta = var_list_beta
         print('Clustering Done')
 
-    def Sample_Pairwise_Distances(self,Load_Prev_Data=False,plot=False,color_dict=None):
+    def Sample_Pairwise_Distances(self,Load_Prev_Data=False,plot=False,color_dict=None,s=100):
         """
         Pairwise Distance Between Samples
 
@@ -982,6 +982,12 @@ class DeepTCR_U(object):
         plot: bool
             In order to plot samples via MDS following pairwise distance computation,
             set to True.
+
+        color_dict: dict
+            Optional dictionary to provide specified colors for classes.
+
+        s: int
+            Size of circles on plot
 
 
         Returns
@@ -1031,9 +1037,6 @@ class DeepTCR_U(object):
                     dist = np.sum(dist)
                     pairwise_distances[ii,jj] = dist
 
-            #
-
-
 
             if plot is True:
                 if color_dict is None:
@@ -1051,7 +1054,7 @@ class DeepTCR_U(object):
 
                 X_2 = MDS(dissimilarity='precomputed').fit_transform(pairwise_distances)
                 plt.figure()
-                plt.scatter(X_2[:,0],X_2[:,1],c=row_colors,s=100)
+                plt.scatter(X_2[:,0],X_2[:,1],c=row_colors,s=s)
                 legend = plt.legend(handles=patches)
 
 
