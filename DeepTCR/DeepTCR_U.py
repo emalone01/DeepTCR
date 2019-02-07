@@ -960,6 +960,9 @@ class DeepTCR_U(object):
         self.var_beta = var_list_beta
         print('Clustering Done')
 
+    def Sample_Pairwise_Distances(self):
+        check=1
+
 
 
 
