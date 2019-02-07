@@ -19,6 +19,8 @@ from scipy.spatial.distance import cdist
 from scipy.cluster.hierarchy import dendrogram
 from scipy.spatial.distance import squareform
 from scipy.stats import wasserstein_distance
+from sklearn.manifold import MDS
+import matplotlib.patches as mpatches
 
 
 class DeepTCR_U(object):
@@ -965,7 +967,7 @@ class DeepTCR_U(object):
         self.var_beta = var_list_beta
         print('Clustering Done')
 
-    def Sample_Pairwise_Distances(self,Load_Prev_Data=False):
+    def Sample_Pairwise_Distances(self,Load_Prev_Data=False,plot=False,color_dict=None):
         """
         Pairwise Distance Between Samples
 
@@ -976,6 +978,10 @@ class DeepTCR_U(object):
         ---------------------------------------
         Load_Prev_Data: bool
             Loads Previous Data.
+
+        plot: bool
+            In order to plot samples via MDS following pairwise distance computation,
+            set to True.
 
 
         Returns
@@ -999,6 +1005,7 @@ class DeepTCR_U(object):
 
             #Get histograms for all samples
             sample_histograms = []
+            file_label = []
             for id in sample_id:
                 sel = self.file_id == id
                 sel_idx = self.features[sel]
@@ -1010,6 +1017,7 @@ class DeepTCR_U(object):
                 feature_hist = np.vstack(feature_hist)
 
                 sample_histograms.append(feature_hist)
+                file_label.append(np.unique(self.label_id[sel])[0])
 
             #compute pairwise wasserstein distances
             pairwise_distances = np.zeros(shape=[len(sample_id),len(sample_id)])
@@ -1021,15 +1029,55 @@ class DeepTCR_U(object):
                             dist.append(d)
                     dist = np.squeeze(np.asarray(dist))
                     dist = np.sum(dist)
-                    #dist = np.sqrt(np.sum(np.square(dist)))
                     pairwise_distances[ii,jj] = dist
 
             #
+
+
+
+            if plot is True:
+                if color_dict is None:
+                    N = len(np.unique(self.label_id))
+                    HSV_tuples = [(x * 1.0 / N, 1.0, 0.5) for x in range(N)]
+                    np.random.shuffle(HSV_tuples)
+                    RGB_tuples = map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples)
+                    color_dict = dict(zip(np.unique(self.label_id), RGB_tuples))
+
+                row_colors = [color_dict[x] for x in file_label]
+
+                patches = []
+                for i in color_dict:
+                    patches.append(mpatches.Patch(color=color_dict[i], label=i))
+
+                X_2 = MDS(dissimilarity='precomputed').fit_transform(pairwise_distances)
+                plt.figure()
+                plt.scatter(X_2[:,0],X_2[:,1],c=row_colors,s=100)
+                legend = plt.legend(handles=patches)
+
+
             # dist_mat = squareform(pairwise_distances)
             # linkage_matrix = linkage(dist_mat)
             # dendrogram(linkage_matrix, color_threshold=1, labels=sample_id, show_leaf_counts=True,orientation='left')
             # plt.xticks(rotation=90)
             # plt.show()
+            # import networkx as nx
+
+            # G = nx.Graph()
+            # rows, cols = np.where(pairwise_distances > 0)
+            # w = pairwise_distances[rows, cols]
+            # rows = sample_id[rows]
+            # cols = sample_id[cols]
+            # edges = list(zip(rows.tolist(), cols.tolist(), w.tolist()))
+            # G.add_weighted_edges_from(edges)
+            # thresh = 0.0
+            # edge_list = [(u, v) for (u, v, d) in G.edges(data=True) if d['weight'] > thresh]
+            #
+            # edge_weights = 1 * np.asarray([G[u][v]['weight'] for u, v in edge_list])
+            # pos = nx.spring_layout(G)
+            # # pos = nx.spectral_layout(G)
+            # nx.draw_networkx_nodes(G, pos, node_size=300)
+            # nx.draw_networkx_edges(G, pos, edgelist=edge_list, width=edge_weights)
+            # nx.draw_networkx_labels(G, pos, font_size=24, font_colr='b')
 
             df = pd.DataFrame(pairwise_distances)
             df.index = sample_id
