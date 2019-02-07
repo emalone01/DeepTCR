@@ -21,6 +21,7 @@ from scipy.spatial.distance import squareform
 from scipy.stats import wasserstein_distance
 from sklearn.manifold import MDS
 import matplotlib.patches as mpatches
+import umap
 
 
 class DeepTCR_U(object):
@@ -967,7 +968,7 @@ class DeepTCR_U(object):
         self.var_beta = var_list_beta
         print('Clustering Done')
 
-    def Sample_Pairwise_Distances(self,Load_Prev_Data=False,plot=False,color_dict=None,s=100):
+    def Sample_Pairwise_Distances(self,Load_Prev_Data=False,plot=False,color_dict=None,s=100,n_neighbors=15):
         """
         Pairwise Distance Between Samples
 
@@ -980,8 +981,14 @@ class DeepTCR_U(object):
             Loads Previous Data.
 
         plot: bool
-            In order to plot samples via MDS following pairwise distance computation,
+            In order to plot samples via umap following pairwise distance computation,
             set to True.
+
+        n_neighbors: int
+            The size of local neighborhood (in terms of number of neighboring sample points)
+            used for manifold approximation. Larger values result in more global views of
+            the manifold, while smaller values result in more local data being preserved.
+            In general values should be in the range 2 to 100.
 
         color_dict: dict
             Optional dictionary to provide specified colors for classes.
@@ -1089,10 +1096,12 @@ class DeepTCR_U(object):
             for i in color_dict:
                 patches.append(mpatches.Patch(color=color_dict[i], label=i))
 
-            X_2 = MDS(dissimilarity='precomputed').fit_transform(pairwise_distances)
+            X_2 = umap.UMAP(metric='precomputed',n_neighbors=n_neighbors).fit_transform(pairwise_distances)
             plt.figure()
             plt.scatter(X_2[:, 0], X_2[:, 1], c=row_colors, s=s)
             legend = plt.legend(handles=patches)
+
+            self.X_2 = X_2
 
 
 
