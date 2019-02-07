@@ -1037,27 +1037,6 @@ class DeepTCR_U(object):
                     dist = np.sum(dist)
                     pairwise_distances[ii,jj] = dist
 
-
-            if plot is True:
-                if color_dict is None:
-                    N = len(np.unique(self.label_id))
-                    HSV_tuples = [(x * 1.0 / N, 1.0, 0.5) for x in range(N)]
-                    np.random.shuffle(HSV_tuples)
-                    RGB_tuples = map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples)
-                    color_dict = dict(zip(np.unique(self.label_id), RGB_tuples))
-
-                row_colors = [color_dict[x] for x in file_label]
-
-                patches = []
-                for i in color_dict:
-                    patches.append(mpatches.Patch(color=color_dict[i], label=i))
-
-                X_2 = MDS(dissimilarity='precomputed').fit_transform(pairwise_distances)
-                plt.figure()
-                plt.scatter(X_2[:,0],X_2[:,1],c=row_colors,s=s)
-                legend = plt.legend(handles=patches)
-
-
             # dist_mat = squareform(pairwise_distances)
             # linkage_matrix = linkage(dist_mat)
             # dendrogram(linkage_matrix, color_threshold=1, labels=sample_id, show_leaf_counts=True,orientation='left')
@@ -1087,14 +1066,33 @@ class DeepTCR_U(object):
             df.columns = sample_id
 
             with open(os.path.join(self.Name,'pwdistances.pkl'),'wb') as f:
-                pickle.dump(df,f,protocol=4)
+                pickle.dump([df,file_label,pairwise_distances],f,protocol=4)
 
         else:
             with open(os.path.join(self.Name,'pwdistances.pkl'),'rb') as f:
-                df = pickle.load(f)
+                df,file_label,pairwise_distances = pickle.load(f)
 
 
         self.pairwise_distances = df
+
+        if plot is True:
+            if color_dict is None:
+                N = len(np.unique(self.label_id))
+                HSV_tuples = [(x * 1.0 / N, 1.0, 0.5) for x in range(N)]
+                np.random.shuffle(HSV_tuples)
+                RGB_tuples = map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples)
+                color_dict = dict(zip(np.unique(self.label_id), RGB_tuples))
+
+            row_colors = [color_dict[x] for x in file_label]
+
+            patches = []
+            for i in color_dict:
+                patches.append(mpatches.Patch(color=color_dict[i], label=i))
+
+            X_2 = MDS(dissimilarity='precomputed').fit_transform(pairwise_distances)
+            plt.figure()
+            plt.scatter(X_2[:, 0], X_2[:, 1], c=row_colors, s=s)
+            legend = plt.legend(handles=patches)
 
 
 
