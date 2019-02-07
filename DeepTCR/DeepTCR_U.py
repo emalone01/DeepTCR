@@ -989,9 +989,10 @@ class DeepTCR_U(object):
         if Load_Prev_Data is False:
             #Create histogram references for all features
 
+            density=True
             bin_edges = []
             for feature in self.features.T:
-                hist,edges = np.histogram(feature,weights=self.freq,density=True)
+                hist,edges = np.histogram(feature,weights=self.freq,density=density)
                 bin_edges.append(edges)
 
             sample_id = np.unique(self.file_id)
@@ -1005,7 +1006,7 @@ class DeepTCR_U(object):
 
                 feature_hist = []
                 for bin,feature in zip(bin_edges,sel_idx.T):
-                    feature_hist.append(np.histogram(feature,bins=bin,weights=np.squeeze(sel_freq),density=True)[0])
+                    feature_hist.append(np.histogram(feature,bins=bin,weights=np.squeeze(sel_freq),density=density)[0])
                 feature_hist = np.vstack(feature_hist)
 
                 sample_histograms.append(feature_hist)
@@ -1022,7 +1023,7 @@ class DeepTCR_U(object):
                     dist = np.sqrt(np.sum(np.square(dist)))
                     pairwise_distances[ii,jj] = dist
 
-
+            #
             # dist_mat = squareform(pairwise_distances)
             # linkage_matrix = linkage(dist_mat)
             # dendrogram(linkage_matrix, color_threshold=1, labels=sample_id, show_leaf_counts=True,orientation='left')
