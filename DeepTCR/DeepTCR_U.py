@@ -1082,6 +1082,7 @@ class DeepTCR_U(object):
 
         self.pairwise_distances = df
 
+        X_2 = umap.UMAP(metric='precomputed', n_neighbors=n_neighbors).fit_transform(pairwise_distances)
         if plot is True:
             if color_dict is None:
                 N = len(np.unique(self.label_id))
@@ -1096,7 +1097,6 @@ class DeepTCR_U(object):
             for i in color_dict:
                 patches.append(mpatches.Patch(color=color_dict[i], label=i))
 
-            X_2 = umap.UMAP(metric='precomputed',n_neighbors=n_neighbors).fit_transform(pairwise_distances)
             plt.figure()
             plt.scatter(X_2[:, 0], X_2[:, 1], c=row_colors, s=s)
             legend = plt.legend(handles=patches)
