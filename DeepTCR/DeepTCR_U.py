@@ -965,7 +965,7 @@ class DeepTCR_U(object):
         self.var_beta = var_list_beta
         print('Clustering Done')
 
-    def Sample_Pairwise_Distances(self):
+    def Sample_Pairwise_Distances(self,Load_Prev_Data=False):
         """
         Pairwise Distance Between Samples
 
@@ -974,6 +974,9 @@ class DeepTCR_U(object):
 
         Inputs
         ---------------------------------------
+        Load_Prev_Data: bool
+            Loads Previous Data.
+
 
         Returns
         ---------------------------------------
@@ -983,51 +986,61 @@ class DeepTCR_U(object):
 
         """
 
-        #Create histogram references for all features
+        if Load_Prev_Data is False:
+            #Create histogram references for all features
 
-        bin_edges = []
-        for feature in self.features.T:
-            hist,edges = np.histogram(feature,weights=self.freq,density=True)
-            bin_edges.append(edges)
+            bin_edges = []
+            for feature in self.features.T:
+                hist,edges = np.histogram(feature,weights=self.freq,density=True)
+                bin_edges.append(edges)
 
-        sample_id = np.unique(self.file_id)
+            sample_id = np.unique(self.file_id)
 
-        #Get histograms for all samples
-        sample_histograms = []
-        for id in sample_id:
-            sel = self.file_id == id
-            sel_idx = self.features[sel]
-            sel_freq = np.expand_dims(self.freq[sel], 1)
+            #Get histograms for all samples
+            sample_histograms = []
+            for id in sample_id:
+                sel = self.file_id == id
+                sel_idx = self.features[sel]
+                sel_freq = np.expand_dims(self.freq[sel], 1)
 
-            feature_hist = []
-            for bin,feature in zip(bin_edges,sel_idx.T):
-                feature_hist.append(np.histogram(feature,bins=bin,weights=np.squeeze(sel_freq),density=True)[0])
-            feature_hist = np.vstack(feature_hist)
+                feature_hist = []
+                for bin,feature in zip(bin_edges,sel_idx.T):
+                    feature_hist.append(np.histogram(feature,bins=bin,weights=np.squeeze(sel_freq),density=True)[0])
+                feature_hist = np.vstack(feature_hist)
 
-            sample_histograms.append(feature_hist)
+                sample_histograms.append(feature_hist)
 
-        #compute pairwise wasserstein distances
-        pairwise_distances = np.zeros(shape=[len(sample_id),len(sample_id)])
-        for ii,i in enumerate(sample_histograms,0):
-            for jj,j in enumerate(sample_histograms,0):
-                dist = []
-                for ft in range(len(i)):
-                        d = wasserstein_distance(i[ft],j[ft])
-                        dist.append(d)
-                dist = np.squeeze(np.asarray(dist))
-                dist = np.sqrt(np.sum(np.square(dist)))
-                pairwise_distances[ii,jj] = dist
+            #compute pairwise wasserstein distances
+            pairwise_distances = np.zeros(shape=[len(sample_id),len(sample_id)])
+            for ii,i in enumerate(sample_histograms,0):
+                for jj,j in enumerate(sample_histograms,0):
+                    dist = []
+                    for ft in range(len(i)):
+                            d = wasserstein_distance(i[ft],j[ft])
+                            dist.append(d)
+                    dist = np.squeeze(np.asarray(dist))
+                    dist = np.sqrt(np.sum(np.square(dist)))
+                    pairwise_distances[ii,jj] = dist
 
 
-        # dist_mat = squareform(pairwise_distances)
-        # linkage_matrix = linkage(dist_mat)
-        # dendrogram(linkage_matrix, color_threshold=1, labels=sample_id, show_leaf_counts=True,orientation='left')
-        # plt.xticks(rotation=90)
-        # plt.show()
+            # dist_mat = squareform(pairwise_distances)
+            # linkage_matrix = linkage(dist_mat)
+            # dendrogram(linkage_matrix, color_threshold=1, labels=sample_id, show_leaf_counts=True,orientation='left')
+            # plt.xticks(rotation=90)
+            # plt.show()
 
-        df = pd.DataFrame(pairwise_distances)
-        df.index = sample_id
-        df.columns = sample_id
+            df = pd.DataFrame(pairwise_distances)
+            df.index = sample_id
+            df.columns = sample_id
+
+            with open(os.path.join(self.Name,'pwdistances.pkl'),'wb') as f:
+                pickle.dump(df,f,protocol=4)
+
+        else:
+            with open(os.path.join(self.Name,'pwdistances.pkl'),'rb') as f:
+                df = pickle.load(f)
+
+
         self.pairwise_distances = df
 
 
