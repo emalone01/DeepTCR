@@ -1020,7 +1020,8 @@ class DeepTCR_U(object):
                             d = wasserstein_distance(i[ft],j[ft])
                             dist.append(d)
                     dist = np.squeeze(np.asarray(dist))
-                    dist = np.sqrt(np.sum(np.square(dist)))
+                    dist = np.sum(dist)
+                    #dist = np.sqrt(np.sum(np.square(dist)))
                     pairwise_distances[ii,jj] = dist
 
             #
