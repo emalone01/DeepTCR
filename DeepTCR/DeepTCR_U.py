@@ -18,7 +18,7 @@ import scipy
 from scipy.spatial.distance import cdist
 from scipy.cluster.hierarchy import dendrogram
 from scipy.spatial.distance import squareform
-from scipy.stats import wasserstein_distance
+from scipy.stats import wasserstein_distance, entropy
 from sklearn.manifold import MDS
 import matplotlib.patches as mpatches
 import umap
@@ -1081,6 +1081,82 @@ class DeepTCR_U(object):
             plt.figure()
             plt.scatter(X_2[:, 0], X_2[:, 1], c=row_colors, s=s)
             plt.legend(handles=patches)
+
+    def Structural_Entropy(self,color_dict=None,plot=True):
+        """
+        Structural Entropy Analysis
+
+        This method computes and assesses the structural entropy/diversity of the repertoire
+        of each sample.
+
+        Inputs
+        ---------------------------------------
+        Load_Prev_Data: bool
+            Loads Previous Data.
+
+        plot: bool
+            In order to show a boxplot of the entropies per class label, set to True
+
+
+        Returns
+        ---------------------------------------
+
+        self.Entropy_DF: pandas dataframe
+            dataframe that stores the structural entropies for each sample
+
+        """
+
+        #Get Global Edges
+        density = True
+        H, edges = np.histogramdd(self.features,weights=self.freq,density=density)
+
+        # Get histograms and compute entropies for all samples
+        sample_id = self.file_list
+        sample_histograms = []
+        file_label = []
+        sample_entropies = []
+
+        for id in sample_id:
+            sel = self.file_id == id
+            sel_idx = self.features[sel]
+            sel_freq = np.expand_dims(self.freq[sel], 1)
+
+            hist = np.histogramdd(sel_idx,bins=edges,weights = np.squeeze(sel_freq),density=density)[0]
+            sample_histograms.append(hist)
+            file_label.append(np.unique(self.label_id[sel])[0])
+            sample_entropies.append(entropy(np.ndarray.flatten(hist)))
+
+        df = pd.DataFrame()
+        df['Entropy'] = sample_entropies
+        df.index = sample_id
+        df['Label'] = file_label
+        self.Entropy_DF = df
+
+        if plot is True:
+            sns.boxplot(data=df,x='Label',y='Entropy')
+
+        # if color_dict is None:
+        #     N=len(np.unique(self.label_id))
+        #     HSV_tuples = [(x * 1.0 / N, 1.0, 0.5) for x in range(N)]
+        #     np.random.shuffle(HSV_tuples)
+        #     RGB_tuples = map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples)
+        #     color_dict = dict(zip(np.unique(self.label_id), RGB_tuples))
+
+        # fig = plt.figure()
+        # ax = fig.add_subplot(111, projection='3d')
+        # xedges,yedges = edges[0],edges[1]
+        # for hist,file_label_i in zip(sample_histograms,file_label):
+        #     Plot_Feature_Histogram(hist, xedges, yedges, ax=ax,c=color_dict[file_label_i],s=5)
+
+
+
+
+
+
+
+
+
+
 
 
 

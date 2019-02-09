@@ -1,4 +1,6 @@
 import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
 
 def Get_Train_Valid_Test(Vars,Y=None,test_size=0.25,regression=False):
 
@@ -185,6 +187,30 @@ def get_mers(X,mer=15,stride=7):
                 break
 
     return Seq_Mers, np.asarray(Seq_ID)
+
+def Plot_Feature_Histogram(hist,xedges,yedges,ax=None,c=None,s=0.5):
+    if ax is None:
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+    xpos, ypos = np.meshgrid(xedges[:-1] + 0.25, yedges[:-1] + 0.25)
+    xpos = xpos.flatten('F')
+    ypos = ypos.flatten('F')
+    zpos = np.zeros_like(xpos)
+
+    # Construct arrays with the dimensions for the 16 bars.
+    dx = s * np.ones_like(zpos)
+    dy = dx.copy()
+    dz = hist.flatten()
+
+    if c is None:
+        ax.bar3d(xpos, ypos, zpos, dx, dy, dz, zsort='average')
+    else:
+        ax.bar3d(xpos, ypos, zpos, dx, dy, dz,color=c, zsort='average')
+
+    if ax is None:
+        plt.show()
+
 
 
 
