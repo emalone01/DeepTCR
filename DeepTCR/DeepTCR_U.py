@@ -1009,6 +1009,106 @@ class DeepTCR_U(object):
         """
 
         if Load_Prev_Data is False:
+            # Get Global Edges
+            density = True
+            H, edges = np.histogramdd(self.features, weights=self.freq, density=density)
+
+            # Get histograms and compute entropies for all samples
+            sample_id = self.file_list
+            sample_histograms = []
+            file_label = []
+
+            for id in sample_id:
+                sel = self.file_id == id
+                sel_idx = self.features[sel]
+                sel_freq = np.expand_dims(self.freq[sel], 1)
+
+                hist = np.histogramdd(sel_idx, bins=edges, weights=np.squeeze(sel_freq), density=density)[0]
+                sample_histograms.append(hist)
+                file_label.append(np.unique(self.label_id[sel])[0])
+
+            #compute pairwise wasserstein distances
+            pairwise_distances = np.zeros(shape=[len(sample_id),len(sample_id)])
+            for ii,i in enumerate(sample_histograms,0):
+                for jj,j in enumerate(sample_histograms,0):
+                    pairwise_distances[ii, jj] = wasserstein_distance(np.ndarray.flatten(i),np.ndarray.flatten(j))
+
+
+            df = pd.DataFrame(pairwise_distances)
+            df.index = sample_id
+            df.columns = sample_id
+
+            with open(os.path.join(self.Name,'pwdistances.pkl'),'wb') as f:
+                pickle.dump([df,file_label,pairwise_distances],f,protocol=4)
+
+        else:
+            with open(os.path.join(self.Name,'pwdistances.pkl'),'rb') as f:
+                df,file_label,pairwise_distances = pickle.load(f)
+
+
+        self.pairwise_distances = df
+
+        X_2 = umap.UMAP(metric='precomputed', n_neighbors=n_neighbors).fit_transform(pairwise_distances)
+        self.X_2 = X_2
+        if plot is True:
+            if color_dict is None:
+                N = len(np.unique(self.label_id))
+                HSV_tuples = [(x * 1.0 / N, 1.0, 0.5) for x in range(N)]
+                np.random.shuffle(HSV_tuples)
+                RGB_tuples = map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples)
+                color_dict = dict(zip(np.unique(self.label_id), RGB_tuples))
+
+            row_colors = [color_dict[x] for x in file_label]
+
+            patches = []
+            for i in color_dict:
+                patches.append(mpatches.Patch(color=color_dict[i], label=i))
+
+            plt.figure()
+            plt.scatter(X_2[:, 0], X_2[:, 1], c=row_colors, s=s)
+            plt.legend(handles=patches)
+
+    def Sample_Pairwise_Distances_dep(self,Load_Prev_Data=False,plot=False,color_dict=None,s=100,n_neighbors=15):
+        """
+        Pairwise Distance Between Samples
+
+        This method computes the distance between samples by measuring the wasserstein
+        distance between distributions of features between samples.
+
+        Inputs
+        ---------------------------------------
+        Load_Prev_Data: bool
+            Loads Previous Data.
+
+        plot: bool
+            In order to plot samples via umap following pairwise distance computation,
+            set to True.
+
+        n_neighbors: int
+            The size of local neighborhood (in terms of number of neighboring sample points)
+            used for manifold approximation. Larger values result in more global views of
+            the manifold, while smaller values result in more local data being preserved.
+            In general values should be in the range 2 to 100.
+
+        color_dict: dict
+            Optional dictionary to provide specified colors for classes.
+
+        s: int
+            Size of circles on plot
+
+
+        Returns
+        ---------------------------------------
+
+        self.pairwise_distances: pandas dataframe
+            dataframe that stores the pairwise distances for all samples
+
+        self.X_2: numpy array
+            two-dimensional representation of samples
+
+        """
+
+        if Load_Prev_Data is False:
             #Create histogram references for all features
 
             density=True
