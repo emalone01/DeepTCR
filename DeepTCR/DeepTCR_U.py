@@ -1094,7 +1094,7 @@ class DeepTCR_U(object):
         """
 
         #Get Global Edges
-        density = True
+        density = False
         H, edges = np.histogramdd(self.features,weights=self.freq,density=density)
 
         # Get histograms and compute entropies for all samples
