@@ -1068,7 +1068,6 @@ class DeepTCR_U(object):
             plt.scatter(X_2[:, 0], X_2[:, 1], c=row_colors, s=s)
             plt.legend(handles=patches)
 
-
     def Structural_Entropy(self,color_dict=None,plot=True):
         """
         Structural Entropy Analysis
