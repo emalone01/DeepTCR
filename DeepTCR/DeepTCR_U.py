@@ -1157,9 +1157,6 @@ class DeepTCR_U(object):
 
         """
 
-        alpha_sequences = np.asarray(alpha_sequences)
-        beta_sequences = np.asarray(beta_sequences)
-
         #check for non-IUPAC letters
         df = pd.DataFrame()
         df['alpha'] = alpha_sequences
@@ -1183,6 +1180,8 @@ class DeepTCR_U(object):
 
         p = Pool(n_jobs)
 
+        alpha_sequences = np.asarray(alpha_sequences)
+        beta_sequences = np.asarray(beta_sequences)
         if alpha_sequences is not None:
             args = list(zip(alpha_sequences, [self.aa_idx] * len(alpha_sequences), [self.max_length] * len(alpha_sequences)))
             result = p.starmap(Embed_Seq_Num, args)
