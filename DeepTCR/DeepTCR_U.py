@@ -1135,6 +1135,27 @@ class DeepTCR_U(object):
         #     Plot_Feature_Histogram(hist, xedges, yedges, ax=ax,c=color_dict[file_label_i],s=5)
 
     def Get_Data_User(self, alpha_sequences=None, beta_sequences=None,n_jobs=40):
+        """
+        Direct Input of TCR Sequences
+
+        This method allows the user to submit sequences directly to DeepTCR
+        for featurization.
+
+        Inputs
+        ---------------------------------------
+        alpha_sequences: list
+            List of alpha sequences for featurization
+
+        beta_sequences: list
+            List of beta sequences for featurization
+
+        n_jobs: int
+         Number of processes to use for parallelized operations.
+
+        Returns
+        ---------------------------------------
+
+        """
 
         alpha_sequences = np.asarray(alpha_sequences)
         beta_sequences = np.asarray(beta_sequences)
