@@ -1135,6 +1135,7 @@ class DeepTCR_U(object):
         #     Plot_Feature_Histogram(hist, xedges, yedges, ax=ax,c=color_dict[file_label_i],s=5)
 
     def Get_Data_User(self, alpha_sequences=None, beta_sequences=None,n_jobs=40):
+
         alpha_sequences = np.asarray(alpha_sequences)
         beta_sequences = np.asarray(beta_sequences)
 
