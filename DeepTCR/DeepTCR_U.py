@@ -1134,6 +1134,61 @@ class DeepTCR_U(object):
         # for hist,file_label_i in zip(sample_histograms,file_label):
         #     Plot_Feature_Histogram(hist, xedges, yedges, ax=ax,c=color_dict[file_label_i],s=5)
 
+    def Get_Data_User(self, alpha_sequences=None, beta_sequences=None,n_jobs=40):
+        alpha_sequences = np.asarray(alpha_sequences)
+        beta_sequences = np.asarray(beta_sequences)
+
+        #check for non-IUPAC letters
+        df = pd.DataFrame()
+        df['alpha'] = alpha_sequences
+        df['beta'] = beta_sequences
+        searchfor = ['\*', 'X', 'O']
+        if alpha_sequences is not None:
+            if np.sum(df.iloc[:, 0].str.contains('|'.join(searchfor))) > 0:
+                print('Non-IUPAC letters in alpha sequence data')
+                return
+
+        if beta_sequences is not None:
+            if np.sum(df.iloc[:, 1].str.contains('|'.join(searchfor))) > 0:
+                print('Non-IUPAC letters in beta sequence data')
+                return
+
+        if alpha_sequences is not None:
+            self.use_alpha = True
+
+        if beta_sequences is not None:
+            self.use_beta = True
+
+        p = Pool(n_jobs)
+
+        if alpha_sequences is not None:
+            args = list(zip(alpha_sequences, [self.aa_idx] * len(alpha_sequences), [self.max_length] * len(alpha_sequences)))
+            result = p.starmap(Embed_Seq_Num, args)
+            sequences_num = np.vstack(result)
+            X_Seq_alpha = np.expand_dims(sequences_num, 1)
+
+        if beta_sequences is not None:
+            args = list(zip(beta_sequences, [self.aa_idx] * len(beta_sequences), [self.max_length] * len(beta_sequences)))
+            result = p.starmap(Embed_Seq_Num, args)
+            sequences_num = np.vstack(result)
+            X_Seq_beta = np.expand_dims(sequences_num, 1)
+
+        if (alpha_sequences is None) and (beta_sequences is None):
+            args = list(zip(beta_sequences, [self.aa_idx] * len(beta_sequences), [self.max_length] * len(beta_sequences)))
+            result = p.starmap(Embed_Seq_Num, args)
+            sequences_num = np.vstack(result)
+            X_Seq_beta = np.expand_dims(sequences_num, 1)
+
+        p.close()
+        p.join()
+
+        self.X_Seq_alpha = X_Seq_alpha
+        self.X_Seq_beta = X_Seq_beta
+        self.alpha_sequences = alpha_sequences
+        self.beta_sequences = beta_sequences
+
+
+
 
 
 
